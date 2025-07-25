@@ -1,20 +1,26 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import NavBar from "./NavBar";
-import { Body } from './Body'; 
-import {Login} from './Login';   
-import {Profile} from './Profile'; 
+import Body from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Body.jsx";
+import Login from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Login.jsx";
+import Profile from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Profile.jsx";
+import { Provider } from "react-redux";
+import appStore from "./utils/appStore";
+import Feed from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Feed.jsx";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Body />}>
-          <Route path="login" element={<Login />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Provider store={appStore}>
+        <BrowserRouter basename="/">
+          <Routes>
+            <Route path="/" element={<Body />}>
+              <Route path="/" element={<Feed />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </Provider>
+    </>
   );
 }
 
