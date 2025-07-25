@@ -9,7 +9,7 @@ export default {
   },
   plugins: [require("daisyui")],
 
-  // ✅ Set DaisyUI theme
+  
   daisyui: {
     themes: ["dark"], // ← only enable the dark theme
   }
