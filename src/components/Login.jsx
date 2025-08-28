@@ -20,17 +20,36 @@ const Login = () => {
     e?.preventDefault?.();
     setError("");
     setLoading(true);
+
     try {
+      // 1) Authenticate (sets cookie)
       const res = await axios.post(
-        BASE_URL + "/login",
+        `${BASE_URL}/login`,
         { email: emailId, password },
         { withCredentials: true }
       );
+
+      // Optional: set whatever login returns (interim data)
       dispatch(addUser(res.data));
+
+      // 2) Immediately hydrate with canonical profile snapshot
+      try {
+        const me = await axios.get(`${BASE_URL}/profile/view`, {
+          withCredentials: true,
+        });
+        dispatch(addUser(me.data)); // overwrite with fresh DB data
+      } catch (hydrationErr) {
+        // If hydration fails, keep interim user; still navigate
+        console.warn("Profile hydration failed:", hydrationErr);
+      }
+
       navigate(from, { replace: true });
     } catch (err) {
       console.error("Login error:", err);
-      setError(err?.response?.data?.message || "Invalid Credentials !! Login failed. Please try again.");
+      setError(
+        err?.response?.data?.message ||
+          "Invalid Credentials !! Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -74,13 +93,13 @@ const Login = () => {
               />
             </label>
 
-            {error && (
-              <p className="text-error text-sm font-medium">{error}</p>
-            )}
+            {error && <p className="text-error text-sm font-medium">{error}</p>}
 
             <button
               type="submit"
-              className={`btn btn-primary w-full shadow-md hover:shadow-lg transition-all ${loading ? "btn-disabled" : ""}`}
+              className={`btn btn-primary w-full shadow-md hover:shadow-lg transition-all ${
+                loading ? "btn-disabled" : ""
+              }`}
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}

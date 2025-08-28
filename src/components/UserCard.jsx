@@ -1,98 +1,67 @@
+// UserCard.jsx
 import React from "react";
 
 const UserCard = ({ user }) => {
   if (!user) return null;
 
   const {
+    name,
     firstName,
     lastName,
-    name,
     photourl,
     photoUrl,
     age,
     gender,
     about,
-    skills = [],
-  } = user;
+    skills,
+  } = user || {};
 
-  const fullName = (firstName || name || "User") + (lastName ? ` ${lastName}` : "");
-  const avatar =
+  // Prefer single "name" over first/last (so live edits reflect immediately)
+  const displayName =
+    (name && String(name)) ||
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    "User";
+
+  const imageSrc =
     photoUrl || photourl || "https://i.pravatar.cc/256?u=codemate-fallback";
 
   return (
-    <div
-      className={[
-        "card w-[22rem] bg-base-100 border border-base-200 shadow-lg",
-        "rounded-2xl overflow-hidden transition-all duration-200",
-        "hover:shadow-xl hover:-translate-y-0.5",
-      ].join(" ")}
-    >
-      {/* Top image */}
+    <div className="card bg-base-100 w-96 shadow-xl border border-base-200">
       <figure className="bg-base-200">
         <img
-          src={avatar}
-          alt={`${fullName} photo`}
+          src={imageSrc}
+          alt={displayName}
           className="object-cover h-56 w-full"
-          loading="lazy"
           onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/256?u=codemate-fallback")}
+          loading="lazy"
         />
       </figure>
+      <div className="card-body">
+        <h2 className="card-title">{displayName}</h2>
 
-      {/* Body */}
-      <div className="card-body gap-3">
-        <div className="flex items-start justify-between">
-          <h2 className="card-title leading-tight">
-            {fullName}
-          </h2>
-          {(age || gender) && (
-            <div className="text-xs px-2 py-1 rounded-lg bg-base-200">
-              {age && <span>Age: {age}</span>}
-              {age && gender ? <span className="mx-1">•</span> : null}
-              {gender && <span>Gender: {gender}</span>}
-            </div>
-          )}
-        </div>
-
-        {about && (
-          <p className="text-sm opacity-90">
-            {about}
-          </p>
-        )}
-
-        {/* Skills */}
-        {skills?.length > 0 && (
-          <div>
-            <div className="text-sm font-medium mb-1">Skills</div>
-            <div className="flex flex-wrap gap-2">
-              {skills.slice(0, 10).map((sk, i) => (
-                <span
-                  key={i}
-                  className="badge badge-outline border-indigo-200 text-indigo-700"
-                >
-                  {sk}
-                </span>
-              ))}
-              {skills.length > 10 && (
-                <span className="badge badge-ghost">+{skills.length - 10} more</span>
-              )}
-            </div>
+        {(age || gender) && (
+          <div className="badge badge-ghost">
+            {age ? `Age: ${age}` : null}
+            {age && gender ? " • " : ""}
+            {gender ? `Gender: ${gender}` : null}
           </div>
         )}
 
-        {/* Actions */}
-        <div className="card-actions justify-center mt-2">
-          <button
-            className="btn btn-outline btn-error min-w-28"
-            aria-label="Ignore user"
-          >
-            Ignore
-          </button>
-          <button
-            className="btn btn-primary min-w-28 shadow-sm hover:shadow-md"
-            aria-label="Interested in user"
-          >
-            Interested
-          </button>
+        {about && <p className="mt-2">{about}</p>}
+
+        {Array.isArray(skills) && skills.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {skills.map((s, i) => (
+              <span key={`${s}-${i}`} className="badge badge-outline">
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="card-actions justify-center mt-4">
+          <button className="btn btn-outline btn-error">Ignore</button>
+          <button className="btn btn-primary">Interested</button>
         </div>
       </div>
     </div>

@@ -32,7 +32,8 @@ const linkClass = ({ isActive }) =>
     isActive ? "font-semibold text-indigo-600" : "text-base-content/80",
   ].join(" ");
 
-const displayName = (u) => u?.firstName || u?.name || "User";
+// Prefer the normalized single `name` from Redux
+const displayName = (u) => (u?.name && String(u.name).trim()) || "User";
 const avatarUrl = (u) =>
   u?.photoUrl || u?.photourl || "https://i.pravatar.cc/80?u=codemate-fallback";
 
