@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -8,10 +9,10 @@ import Feed from "./components/Feed";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
 import RequireAuth from "./components/RequireAuth";
-import Requests from "./components/Requests";      // ← NEW
-import Connections from "./components/Connections"; // ← NEW
+import Requests from "./components/Requests";
+import Connections from "./components/Connections";
+import ChangePassword from "./components/ChangePasswordModal"; // ← NEW
 
-// Ensure default theme = light and persisted
 const ThemeBoot = ({ children }) => {
   useEffect(() => {
     const saved = localStorage.getItem("theme") || "light";
@@ -31,41 +32,12 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Body />}>
               <Route index element={<Home />} />
-              <Route
-                path="feed"
-                element={
-                  <RequireAuth>
-                    <Feed />
-                  </RequireAuth>
-                }
-              />
+              <Route path="feed" element={<RequireAuth><Feed /></RequireAuth>} />
               <Route path="login" element={<Login />} />
-              <Route
-                path="profile"
-                element={
-                  <RequireAuth>
-                    <Profile />
-                  </RequireAuth>
-                }
-              />
-              {/* NEW protected pages */}
-              <Route
-                path="requests"
-                element={
-                  <RequireAuth>
-                    <Requests />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="connections"
-                element={
-                  <RequireAuth>
-                    <Connections />
-                  </RequireAuth>
-                }
-              />
-
+              <Route path="profile" element={<RequireAuth><Profile /></RequireAuth>} />
+              <Route path="requests" element={<RequireAuth><Requests /></RequireAuth>} />
+              <Route path="connections" element={<RequireAuth><Connections /></RequireAuth>} />
+              <Route path="change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} /> {/* ← NEW */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

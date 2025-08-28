@@ -1,3 +1,4 @@
+// src/components/NavBar.jsx
 import React from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -6,13 +7,17 @@ import { removeUser } from "../utils/userSlice";
 import { BASE_URL } from "../utils/constants";
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = React.useState(() => localStorage.getItem("theme") || "light");
+  const [theme, setTheme] = React.useState(
+    () => localStorage.getItem("theme") || "light"
+  );
+
   React.useEffect(() => {
     const html = document.documentElement;
     html.setAttribute("data-theme", theme);
     html.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
+
   return (
     <button
       className="btn btn-ghost btn-circle hover:scale-105 active:scale-95 transition-transform"
@@ -25,14 +30,19 @@ const ThemeToggle = () => {
   );
 };
 
-const linkClass = ({ isActive }) =>
+const topLinkClass = ({ isActive }) =>
   [
     "px-3 py-2 rounded-xl transition-all duration-200",
     "hover:bg-base-200 hover:shadow-sm",
     isActive ? "font-semibold text-indigo-600" : "text-base-content/80",
   ].join(" ");
 
-// Prefer the normalized single `name` from Redux
+const menuLinkClass = ({ isActive }) =>
+  [
+    "justify-between",
+    isActive ? "active font-medium text-indigo-600" : "",
+  ].join(" ");
+
 const displayName = (u) => (u?.name && String(u.name).trim()) || "User";
 const avatarUrl = (u) =>
   u?.photoUrl || u?.photourl || "https://i.pravatar.cc/80?u=codemate-fallback";
@@ -48,7 +58,9 @@ const NavBar = () => {
   const handleLogout = async () => {
     try {
       await axios.get(`${BASE_URL}/logout`, { withCredentials: true });
-    } catch {}
+    } catch {
+      /* ignore */
+    }
     dispatch(removeUser());
     navigate("/login", { replace: true });
   };
@@ -64,16 +76,24 @@ const NavBar = () => {
     >
       {/* Left: brand */}
       <div className="navbar-start">
-        <Link to="/" className="btn btn-ghost text-xl font-bold tracking-tight flex items-center gap-2">
+        <Link
+          to="/"
+          className="btn btn-ghost text-xl font-bold tracking-tight flex items-center gap-2"
+        >
           <span className="text-indigo-600 text-lg">■</span>
           <span>CodeMate</span>
         </Link>
       </div>
 
-      {/* Center: only Home now */}
+      {/* Center: primary nav */}
       <div className="navbar-center hidden md:flex">
         <nav className="flex items-center gap-1 p-1 rounded-2xl shadow-sm bg-base-100/60">
-          <NavLink to="/" className={linkClass}>Home</NavLink>
+          <NavLink to="/" className={topLinkClass}>
+            Home
+          </NavLink>
+          <NavLink to="/feed" className={topLinkClass}>
+            Feed
+          </NavLink>
         </nav>
       </div>
 
@@ -89,26 +109,55 @@ const NavBar = () => {
             </div>
 
             <div className="dropdown dropdown-end">
-              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-                <div className="w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2">
+              <button
+                tabIndex={0}
+                className="btn btn-ghost btn-circle avatar"
+                aria-haspopup="menu"
+                aria-label="Open user menu"
+              >
+                <div className="w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2 overflow-hidden">
                   <img
                     src={avatarUrl(user)}
                     alt={displayName(user)}
-                    onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/80?u=codemate-fallback")}
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://i.pravatar.cc/80?u=codemate-fallback";
+                    }}
                     loading="lazy"
                   />
                 </div>
-              </div>
+              </button>
+
               <ul
                 tabIndex={0}
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-56 p-2 shadow-lg"
+                role="menu"
               >
-                <li><Link to="/profile">Profile</Link></li>
-                {/* NEW menu entries */}
-                <li><Link to="/requests">Requests</Link></li>
-                <li><Link to="/connections">Connections</Link></li>
-                {/* remove “Settings” per your note */}
-                <li><button type="button" onClick={handleLogout}>Logout</button></li>
+                <li>
+                  <NavLink to="/profile" className={menuLinkClass}>
+                    Profile
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/connections" className={menuLinkClass}>
+                    Connections
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/requests" className={menuLinkClass}>
+                    Requests
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/change-password" className={menuLinkClass}>
+                    Change password
+                  </NavLink>
+                </li>
+                <li>
+                  <button type="button" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </li>
               </ul>
             </div>
           </>
