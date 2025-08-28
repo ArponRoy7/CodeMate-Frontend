@@ -1,48 +1,126 @@
-import { useSelector } from "react-redux";
+import React from "react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import axios from "axios";
+import { removeUser } from "../utils/userSlice";
+import { BASE_URL } from "../utils/constants";
+
+const ThemeToggle = () => {
+  const [theme, setTheme] = React.useState(() => localStorage.getItem("theme") || "light");
+  React.useEffect(() => {
+    const html = document.documentElement;
+    html.setAttribute("data-theme", theme);
+    html.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+  return (
+    <button
+      className="btn btn-ghost btn-circle hover:scale-105 active:scale-95 transition-transform"
+      onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+      aria-label="Toggle theme"
+      title="Toggle theme"
+    >
+      <span className="text-lg leading-none">{theme === "light" ? "🌞" : "🌙"}</span>
+    </button>
+  );
+};
+
+const linkClass = ({ isActive }) =>
+  [
+    "px-3 py-2 rounded-xl transition-all duration-200",
+    "hover:bg-base-200 hover:shadow-sm",
+    isActive ? "font-semibold text-indigo-600" : "text-base-content/80",
+  ].join(" ");
+
+const displayName = (u) => u?.firstName || u?.name || "User";
+const avatarUrl = (u) =>
+  u?.photoUrl || u?.photourl || "https://i.pravatar.cc/80?u=codemate-fallback";
 
 const NavBar = () => {
-  const user = useSelector((store) => store.user);
-  console.log(user);
+  const user = useSelector((s) => s.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isLoginPage = location.pathname === "/login";
+
+  const handleLogout = async () => {
+    try {
+      await axios.get(`${BASE_URL}/logout`, { withCredentials: true });
+    } catch {}
+    dispatch(removeUser());
+    navigate("/login", { replace: true });
+  };
 
   return (
-    <div className="navbar bg-base-300">
-      <div className="flex-1">
-        <a className="btn btn-ghost text-xl">👩‍💻 DevTinder</a>
+    <div
+      className={[
+        "navbar sticky top-0 z-40",
+        "bg-base-100/80 backdrop-blur supports-[backdrop-filter]:bg-base-100/70",
+        "border-b border-indigo-100 shadow-sm",
+        "px-4",
+      ].join(" ")}
+    >
+      {/* Left: brand */}
+      <div className="navbar-start">
+        <Link to="/" className="btn btn-ghost text-xl font-bold tracking-tight flex items-center gap-2">
+          <span className="text-indigo-600 text-lg">■</span>
+          <span>CodeMate</span>
+        </Link>
       </div>
-      {user && (
-        <div className="flex-none gap-2">
-          <div className="form-control">Welcome, {user.firstName}</div>
-          <div className="dropdown dropdown-end mx-5 flex">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar"
-            >
-              <div className="w-10 rounded-full">
-                <img alt="user photo" src={user.photoUrl} />
-              </div>
+
+      {/* Center: only Home now */}
+      <div className="navbar-center hidden md:flex">
+        <nav className="flex items-center gap-1 p-1 rounded-2xl shadow-sm bg-base-100/60">
+          <NavLink to="/" className={linkClass}>Home</NavLink>
+        </nav>
+      </div>
+
+      {/* Right: theme + user */}
+      <div className="navbar-end gap-3">
+        <ThemeToggle />
+
+        {user ? (
+          <>
+            <div className="hidden sm:block text-sm">
+              <span className="opacity-80">Welcome, </span>
+              <span className="font-semibold">{displayName(user)}</span>
             </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+                <div className="w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2">
+                  <img
+                    src={avatarUrl(user)}
+                    alt={displayName(user)}
+                    onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/80?u=codemate-fallback")}
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow-lg"
+              >
+                <li><Link to="/profile">Profile</Link></li>
+                <li><button type="button">Settings</button></li>
+                <li><button type="button" onClick={handleLogout}>Logout</button></li>
+              </ul>
+            </div>
+          </>
+        ) : (
+          !isLoginPage && (
+            <Link
+              to="/login"
+              className="btn btn-primary shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all"
             >
-              <li>
-                <a className="justify-between">
-                  Profile
-                  <span className="badge">New</span>
-                </a>
-              </li>
-              <li>
-                <a>Settings</a>
-              </li>
-              <li>
-                <a>Logout</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+              Login
+            </Link>
+          )
+        )}
+      </div>
     </div>
   );
 };
+
 export default NavBar;

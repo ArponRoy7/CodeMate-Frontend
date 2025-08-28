@@ -1,72 +1,95 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { addUser } from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/utils/userSlice.js";
-import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/utils/constants.js";
+import { addUser } from "../utils/userSlice";
+import { useNavigate, useLocation } from "react-router-dom";
+import { BASE_URL } from "../utils/constants";
 
 const Login = () => {
-  const [emailId, setEmailId] = useState("Tom@gmail.com");
-  const [password, setPassword] = useState("Arpon123#");
+  const [emailId, setEmailId] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogin = async () => {
+  const from = location.state?.from?.pathname || "/feed";
+
+  const handleLogin = async (e) => {
+    e?.preventDefault?.();
+    setError("");
+    setLoading(true);
     try {
       const res = await axios.post(
         BASE_URL + "/login",
-        {
-          email: emailId,
-          password,
-        },
+        { email: emailId, password },
         { withCredentials: true }
       );
       dispatch(addUser(res.data));
-      return navigate("/");
-    }  catch (err) {
-      console.error("Error during login:", err);
-      console.log("Full error response:", err?.response);
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err?.response?.data?.message || "Invalid Credentials !! Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
   };
 
   return (
-    <div className="flex justify-center my-10">
-      <div className="card bg-base-300 w-96 shadow-xl">
+    <section className="min-h-[80vh] flex items-center justify-center px-4">
+      <div className="card w-full max-w-md bg-base-100 border border-base-300 shadow-xl rounded-2xl overflow-hidden">
+        {/* Header strip */}
+        <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-4">
+          <h1 className="text-2xl font-bold">Welcome Back</h1>
+          <p className="text-sm opacity-90">Sign in to continue to CodeMate</p>
+        </div>
+
+        {/* Form body */}
         <div className="card-body">
-          <h2 className="card-title justify-center">Login</h2>
-          <div>
-            <label className="form-control w-full max-w-xs my-2">
+          <form onSubmit={handleLogin} className="space-y-5">
+            <label className="form-control w-full">
               <div className="label">
-                <span className="label-text">Email ID:</span>
+                <span className="label-text font-medium">Email Address</span>
               </div>
               <input
-                type="text"
+                type="email"
+                className="input input-bordered w-full focus:ring focus:ring-indigo-200"
                 value={emailId}
-                className="input input-bordered w-full max-w-xs"
                 onChange={(e) => setEmailId(e.target.value)}
+                required
               />
             </label>
-            <label className="form-control w-full max-w-xs my-2">
+
+            <label className="form-control w-full">
               <div className="label">
-                <span className="label-text">Password</span>
+                <span className="label-text font-medium">Password</span>
               </div>
               <input
-                type="text"
+                type="password"
+                className="input input-bordered w-full focus:ring focus:ring-indigo-200"
                 value={password}
-                className="input input-bordered w-full max-w-xs"
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </label>
-          </div>
-          <div className="card-actions justify-center m-2">
-            <button className="btn btn-primary" onClick={handleLogin}>
-              Login
+
+            {error && (
+              <p className="text-error text-sm font-medium">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              className={`btn btn-primary w-full shadow-md hover:shadow-lg transition-all ${loading ? "btn-disabled" : ""}`}
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
             </button>
-          </div>
+          </form>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
+
 export default Login;

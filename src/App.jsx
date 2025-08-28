@@ -1,27 +1,56 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Body from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Body.jsx";
-import Login from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Login.jsx";
-import Profile from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Profile.jsx";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
-import appStore from "./utils/appStore";
-import Feed from "/home/arpon-roy/Desktop/WebDevCodes/devtinder-frontend/src/components/Feed.jsx";
+import store from "./utils/appStore";
+import Body from "./components/Body";
+import Home from "./components/Home";
+import Feed from "./components/Feed";
+import Login from "./components/Login";
+import Profile from "./components/Profile";
+import RequireAuth from "./components/RequireAuth";
 
-function App() {
+// Ensure default theme = light and persisted
+const ThemeBoot = ({ children }) => {
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") || "light";
+    const html = document.documentElement;
+    html.setAttribute("data-theme", saved);
+    if (saved === "dark") html.classList.add("dark");
+    else html.classList.remove("dark");
+  }, []);
+  return children;
+};
+
+export default function App() {
   return (
-    <>
-      <Provider store={appStore}>
-        <BrowserRouter basename="/">
+    <Provider store={store}>
+      <Router>
+        <ThemeBoot>
           <Routes>
             <Route path="/" element={<Body />}>
-              <Route path="/" element={<Feed />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route index element={<Home />} />
+              <Route
+                path="feed"
+                element={
+                  <RequireAuth>
+                    <Feed />
+                  </RequireAuth>
+                }
+              />
+              <Route path="login" element={<Login />} />
+              <Route
+                path="profile"
+                element={
+                  <RequireAuth>
+                    <Profile />
+                  </RequireAuth>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
-        </BrowserRouter>
-      </Provider>
-    </>
+        </ThemeBoot>
+      </Router>
+    </Provider>
   );
 }
-
-export default App;
