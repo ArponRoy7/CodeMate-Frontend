@@ -101,10 +101,13 @@ const NavBar = () => {
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow-lg"
+                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-56 p-2 shadow-lg"
               >
                 <li><Link to="/profile">Profile</Link></li>
-                <li><button type="button">Settings</button></li>
+                {/* NEW menu entries */}
+                <li><Link to="/requests">Requests</Link></li>
+                <li><Link to="/connections">Connections</Link></li>
+                {/* remove “Settings” per your note */}
                 <li><button type="button" onClick={handleLogout}>Logout</button></li>
               </ul>
             </div>

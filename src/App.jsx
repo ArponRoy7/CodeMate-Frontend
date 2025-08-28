@@ -8,6 +8,8 @@ import Feed from "./components/Feed";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
 import RequireAuth from "./components/RequireAuth";
+import Requests from "./components/Requests";      // ← NEW
+import Connections from "./components/Connections"; // ← NEW
 
 // Ensure default theme = light and persisted
 const ThemeBoot = ({ children }) => {
@@ -46,6 +48,24 @@ export default function App() {
                   </RequireAuth>
                 }
               />
+              {/* NEW protected pages */}
+              <Route
+                path="requests"
+                element={
+                  <RequireAuth>
+                    <Requests />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="connections"
+                element={
+                  <RequireAuth>
+                    <Connections />
+                  </RequireAuth>
+                }
+              />
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
