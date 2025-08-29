@@ -94,6 +94,9 @@ const NavBar = () => {
           <NavLink to="/feed" className={topLinkClass}>
             Feed
           </NavLink>
+          <NavLink to="/premium" className={topLinkClass}> {/* ← NEW */}
+            Premium
+          </NavLink>
         </nav>
       </div>
 
@@ -151,6 +154,11 @@ const NavBar = () => {
                 <li>
                   <NavLink to="/change-password" className={menuLinkClass}>
                     Change password
+                  </NavLink>
+                </li>
+                <li className="md:hidden"> {/* Mobile access to Premium */}
+                  <NavLink to="/premium" className={menuLinkClass}>
+                    Premium
                   </NavLink>
                 </li>
                 <li>

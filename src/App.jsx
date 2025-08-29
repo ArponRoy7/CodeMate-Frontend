@@ -11,7 +11,8 @@ import Profile from "./components/Profile";
 import RequireAuth from "./components/RequireAuth";
 import Requests from "./components/Requests";
 import Connections from "./components/Connections";
-import ChangePassword from "./components/ChangePasswordModal"; // ← NEW
+import ChangePassword from "./components/ChangePasswordModal"; // ← existing
+import Premium from "./components/Premium"; // ← NEW
 
 const ThemeBoot = ({ children }) => {
   useEffect(() => {
@@ -37,7 +38,8 @@ export default function App() {
               <Route path="profile" element={<RequireAuth><Profile /></RequireAuth>} />
               <Route path="requests" element={<RequireAuth><Requests /></RequireAuth>} />
               <Route path="connections" element={<RequireAuth><Connections /></RequireAuth>} />
-              <Route path="change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} /> {/* ← NEW */}
+              <Route path="change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
+              <Route path="premium" element={<RequireAuth><Premium /></RequireAuth>} /> {/* ← NEW */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
