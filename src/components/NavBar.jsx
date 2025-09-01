@@ -38,24 +38,47 @@ const topLinkClass = ({ isActive }) =>
   ].join(" ");
 
 const menuLinkClass = ({ isActive }) =>
-  [
-    "justify-between",
-    isActive ? "active font-medium text-indigo-600" : "",
-  ].join(" ");
+  ["justify-between", isActive ? "active font-medium text-indigo-600" : ""].join(" ");
 
 const displayName = (u) => (u?.name && String(u.name).trim()) || "User";
 const avatarUrl = (u) =>
   u?.photoUrl || u?.photourl || "https://i.pravatar.cc/80?u=codemate-fallback";
+
+// small inline premium badge (SVG) for name row
+const PremiumBadge = ({ className = "" }) => (
+  <span
+    title="Premium member"
+    className={`inline-flex items-center justify-center ml-1 align-middle ${className}`}
+    aria-label="Premium"
+  >
+    {/* rounded diamond-ish check; easy to swap later */}
+    <svg width="14" height="14" viewBox="0 0 20 20" className="shrink-0">
+      <defs>
+        <linearGradient id="pm-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="100%" stopColor="#2563eb" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M10 1.8l6.2 6.2a2.5 2.5 0 010 3.5L10 17.8l-6.2-6.3a2.5 2.5 0 010-3.5L10 1.8z"
+        fill="url(#pm-blue)"
+      />
+      <path
+        d="M8.2 10.8l-1.7-1.7a1 1 0 10-1.4 1.4l2.4 2.4a1 1 0 001.4 0l5-5a1 1 0 10-1.4-1.4l-4.3 4.3z"
+        fill="white"
+      />
+    </svg>
+  </span>
+);
 
 const NavBar = () => {
   const user = useSelector((s) => s.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
   const isLoginPage = location.pathname === "/login";
 
-  // NEW: premium badge state
+  // premium state
   const [isPremium, setIsPremium] = React.useState(false);
 
   React.useEffect(() => {
@@ -65,7 +88,7 @@ const NavBar = () => {
         const r = await axios.get(`${BASE_URL}/me/subscription`, { withCredentials: true });
         if (mounted) setIsPremium(!!r?.data?.isPremium);
       } catch {
-        // not logged in or no sub; ignore
+        // ignore if not logged in
       }
     })();
     return () => {
@@ -76,9 +99,7 @@ const NavBar = () => {
   const handleLogout = async () => {
     try {
       await axios.get(`${BASE_URL}/logout`, { withCredentials: true });
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     dispatch(removeUser());
     navigate("/login", { replace: true });
   };
@@ -124,9 +145,13 @@ const NavBar = () => {
 
         {user ? (
           <>
-            <div className="hidden sm:block text-sm">
-              <span className="opacity-80">Welcome, </span>
-              <span className="font-semibold">{displayName(user)}</span>
+            {/* Greeting + inline premium badge (next to name) */}
+            <div className="hidden sm:flex items-center text-sm">
+              <span className="opacity-80">Welcome,&nbsp;</span>
+              <span className="font-semibold inline-flex items-center">
+                {displayName(user)}
+                {isPremium && <PremiumBadge />}
+              </span>
             </div>
 
             <div className="dropdown dropdown-end">
@@ -136,7 +161,7 @@ const NavBar = () => {
                 aria-haspopup="menu"
                 aria-label="Open user menu"
               >
-                <div className="relative w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2 overflow-hidden">
+                <div className="w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2 overflow-hidden">
                   <img
                     src={avatarUrl(user)}
                     alt={displayName(user)}
@@ -145,14 +170,6 @@ const NavBar = () => {
                     }}
                     loading="lazy"
                   />
-                  {isPremium && (
-                    <span
-                      title="Premium member"
-                      className="absolute -right-0.5 -bottom-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold shadow"
-                    >
-                      ✓
-                    </span>
-                  )}
                 </div>
               </button>
 
@@ -161,6 +178,18 @@ const NavBar = () => {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-56 p-2 shadow-lg"
                 role="menu"
               >
+                <li className="pointer-events-none">
+                  <div className="flex items-center gap-2 opacity-80">
+                    <span className="text-xs">Status:</span>
+                    {isPremium ? (
+                      <span className="inline-flex items-center text-xs font-medium text-blue-600">
+                        Premium <PremiumBadge className="ml-1" />
+                      </span>
+                    ) : (
+                      <span className="text-xs">Free</span>
+                    )}
+                  </div>
+                </li>
                 <li>
                   <NavLink to="/profile" className={menuLinkClass}>
                     Profile
@@ -182,7 +211,6 @@ const NavBar = () => {
                   </NavLink>
                 </li>
                 <li className="md:hidden">
-                  {/* Mobile access to Premium */}
                   <NavLink to="/premium" className={menuLinkClass}>
                     Premium
                   </NavLink>
