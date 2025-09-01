@@ -1,7 +1,7 @@
-// src/components/Premium.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants.js";
+import { useLocation } from "react-router-dom";
 
 const fallbackPerks = {
   silver: [
@@ -26,7 +26,15 @@ export default function Premium() {
   const [error, setError] = useState("");
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isPremium, setIsPremium] = useState(false);
+  const [sub, setSub] = useState(null);
+  const location = useLocation();
 
+  const qp = new URLSearchParams(location.search);
+  const status = qp.get("status");
+  const sessionId = qp.get("session_id");
+
+  // Load available plans
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -39,10 +47,27 @@ export default function Premium() {
         setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
+
+  // Check membership
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await axios.get(`${BASE_URL}/me/subscription`, { withCredentials: true });
+        setIsPremium(!!r?.data?.isPremium);
+        setSub(r?.data?.subscription || null);
+      } catch {
+        // not logged in or no sub — ignore
+      }
+    })();
+  }, []);
+
+  // clear error when toggling billing
+  useEffect(() => {
+    setError("");
+    setLoadingPlan(null);
+  }, [billing]);
 
   const priceMap = useMemo(() => {
     const map = { silver: {}, gold: {} };
@@ -63,6 +88,8 @@ export default function Premium() {
     return m;
   }, [plans]);
 
+  const hasPrice = (plan) => Boolean(priceMap?.[plan]?.[billing]);
+
   const startCheckout = async (plan) => {
     try {
       setError("");
@@ -75,7 +102,12 @@ export default function Premium() {
       if (res?.data?.url) window.location.href = res.data.url;
       else setError("Could not start checkout. Please try again.");
     } catch (e) {
-      setError(e?.response?.data?.message || "Checkout failed. Try again.");
+      const msg = e?.response?.data?.message || "Checkout failed. Try again.";
+      if (/Plan not configured/i.test(msg)) {
+        // keep calm; the button is disabled when price missing
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoadingPlan(null);
     }
@@ -102,59 +134,71 @@ export default function Premium() {
     );
   };
 
-  const PlanCard = ({ plan, title, highlight }) => (
-    <div
-      className={[
-        "card w-full shadow-md border",
-        highlight ? "border-indigo-400" : "border-base-200",
-        "bg-base-100",
-      ].join(" ")}
-    >
-      <div className="card-body">
-        <div className="flex items-center justify-between">
-          <h3 className="card-title text-2xl">
-            {title}{" "}
-            {highlight && (
-              <span className="badge badge-primary badge-outline ml-2">Popular</span>
-            )}
-          </h3>
-          <img
-            src={
-              plan === "gold"
+  const PlanCard = ({ plan, title, highlight }) => {
+    const available = hasPrice(plan);
+    return (
+      <div
+        className={[
+          "card w-full shadow-md border",
+          highlight ? "border-indigo-400" : "border-base-200",
+          "bg-base-100",
+        ].join(" ")}
+      >
+        <div className="card-body">
+          <div className="flex items-center justify-between">
+            <h3 className="card-title text-2xl">
+              {title}{" "}
+              {highlight && (
+                <span className="badge badge-primary badge-outline ml-2">Popular</span>
+              )}
+            </h3>
+            <img
+              src={plan === "gold"
                 ? "https://img.icons8.com/emoji/48/1f947.png"
-                : "https://img.icons8.com/emoji/48/1f948.png"
-            }
-            alt={`${title} badge`}
-            className="w-6 h-6"
-            loading="lazy"
-          />
-        </div>
+                : "https://img.icons8.com/emoji/48/1f948.png"}
+              alt={`${title} badge`}
+              className="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
 
-        <Price plan={plan} />
+          <Price plan={plan} />
 
-        <ul className="space-y-2 mb-4">
-          {(featureMap[plan] || []).map((p) => (
-            <li key={p} className="flex items-start gap-2">
-              <span className="mt-1">✔️</span>
-              <span>{p}</span>
-            </li>
-          ))}
-        </ul>
+          <ul className="space-y-2 mb-4">
+            {(featureMap[plan] || []).map((p) => (
+              <li key={p} className="flex items-start gap-2">
+                <span className="mt-1">✔️</span>
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
 
-        <button
-          className="btn btn-primary w-full"
-          onClick={() => startCheckout(plan)}
-          disabled={loadingPlan !== null || loading}
-        >
-          {loadingPlan === plan ? "Redirecting…" : `Choose ${title}`}
-        </button>
+          <button
+            className={`btn w-full ${available ? "btn-primary" : "btn-disabled"}`}
+            onClick={() => available && startCheckout(plan)}
+            disabled={loadingPlan !== null || loading || !available}
+            title={!available ? `This plan for ${billing} isn’t available yet` : ""}
+          >
+            {!available
+              ? "Coming soon"
+              : loadingPlan === plan
+              ? "Redirecting…"
+              : `Choose ${title}`}
+          </button>
 
-        <div className="text-xs opacity-70 mt-2">
-          Auto-renews. Cancel anytime from Profile &gt; Billing.
+          {!available && (
+            <div className="text-xs opacity-70 mt-2">
+              This plan for {billing} isn’t available yet.
+            </div>
+          )}
+
+          <div className="text-xs opacity-70 mt-2">
+            Auto-renews. Cancel anytime from Profile &gt; Billing.
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
@@ -180,13 +224,40 @@ export default function Premium() {
         </div>
       </header>
 
-      {error && (
+      {/* Notices from Stripe return */}
+      {status === "success" && sessionId && (
+        <div className="alert alert-success mb-6">
+          <span>Payment successful. Session: {sessionId.slice(0, 12)}…</span>
+        </div>
+      )}
+      {status === "cancel" && (
+        <div className="alert alert-warning mb-6">
+          <span>Checkout canceled. You can try again anytime.</span>
+        </div>
+      )}
+
+      {/* Only show global error for non-config issues */}
+      {error && !/Plan not configured/i.test(error) && (
         <div className="alert alert-error mb-6">
           <span>{error}</span>
         </div>
       )}
 
-      {loading ? (
+      {/* If already premium, don’t show plans */}
+      {isPremium ? (
+        <div className="rounded-2xl p-6 border shadow-sm bg-base-100 text-center">
+          <h2 className="text-2xl font-bold">You’re already Premium 🎉</h2>
+          {sub && (
+            <p className="mt-2 opacity-80 text-sm">
+              Plan: <b>{sub.plan}</b> · Billing: <b>{sub.billing}</b> · Status:{" "}
+              <b>{sub.status}</b>
+            </p>
+          )}
+          <p className="mt-2 opacity-80">
+            Thanks for supporting CodeMate. Enjoy all premium benefits!
+          </p>
+        </div>
+      ) : loading ? (
         <div className="text-center opacity-70">Loading plans…</div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">

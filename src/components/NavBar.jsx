@@ -55,6 +55,24 @@ const NavBar = () => {
 
   const isLoginPage = location.pathname === "/login";
 
+  // NEW: premium badge state
+  const [isPremium, setIsPremium] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const r = await axios.get(`${BASE_URL}/me/subscription`, { withCredentials: true });
+        if (mounted) setIsPremium(!!r?.data?.isPremium);
+      } catch {
+        // not logged in or no sub; ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleLogout = async () => {
     try {
       await axios.get(`${BASE_URL}/logout`, { withCredentials: true });
@@ -94,7 +112,7 @@ const NavBar = () => {
           <NavLink to="/feed" className={topLinkClass}>
             Feed
           </NavLink>
-          <NavLink to="/premium" className={topLinkClass}> {/* ← NEW */}
+          <NavLink to="/premium" className={topLinkClass}>
             Premium
           </NavLink>
         </nav>
@@ -118,16 +136,23 @@ const NavBar = () => {
                 aria-haspopup="menu"
                 aria-label="Open user menu"
               >
-                <div className="w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2 overflow-hidden">
+                <div className="relative w-9 rounded-full ring ring-indigo-500/70 ring-offset-base-100 ring-offset-2 overflow-hidden">
                   <img
                     src={avatarUrl(user)}
                     alt={displayName(user)}
                     onError={(e) => {
-                      e.currentTarget.src =
-                        "https://i.pravatar.cc/80?u=codemate-fallback";
+                      e.currentTarget.src = "https://i.pravatar.cc/80?u=codemate-fallback";
                     }}
                     loading="lazy"
                   />
+                  {isPremium && (
+                    <span
+                      title="Premium member"
+                      className="absolute -right-0.5 -bottom-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold shadow"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </div>
               </button>
 
@@ -156,7 +181,8 @@ const NavBar = () => {
                     Change password
                   </NavLink>
                 </li>
-                <li className="md:hidden"> {/* Mobile access to Premium */}
+                <li className="md:hidden">
+                  {/* Mobile access to Premium */}
                   <NavLink to="/premium" className={menuLinkClass}>
                     Premium
                   </NavLink>
