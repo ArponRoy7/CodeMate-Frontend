@@ -1,3 +1,4 @@
+// src/components/Premium.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants.js";
@@ -139,23 +140,27 @@ export default function Premium() {
     return (
       <div
         className={[
-          "card w-full shadow-md border",
-          highlight ? "border-indigo-400" : "border-base-200",
+          "card w-full shadow-xl border overflow-hidden",
+          highlight ? "border-primary/50" : "border-base-200",
           "bg-base-100",
         ].join(" ")}
       >
-        <div className="card-body">
-          <div className="flex items-center justify-between">
+        {/* Ribbon */}
+        {highlight && (
+          <div className="badge badge-primary absolute right-3 top-3 badge-lg">Popular</div>
+        )}
+
+        <div className="card-body p-5 sm:p-6">
+          <div className="flex items-center justify-between gap-3">
             <h3 className="card-title text-2xl">
-              {title}{" "}
-              {highlight && (
-                <span className="badge badge-primary badge-outline ml-2">Popular</span>
-              )}
+              {title}
             </h3>
             <img
-              src={plan === "gold"
-                ? "https://img.icons8.com/emoji/48/1f947.png"
-                : "https://img.icons8.com/emoji/48/1f948.png"}
+              src={
+                plan === "gold"
+                  ? "https://img.icons8.com/emoji/48/1f947.png"
+                  : "https://img.icons8.com/emoji/48/1f948.png"
+              }
               alt={`${title} badge`}
               className="w-6 h-6"
               loading="lazy"
@@ -167,7 +172,7 @@ export default function Premium() {
           <ul className="space-y-2 mb-4">
             {(featureMap[plan] || []).map((p) => (
               <li key={p} className="flex items-start gap-2">
-                <span className="mt-1">✔️</span>
+                <span className="mt-0.5">✔️</span>
                 <span>{p}</span>
               </li>
             ))}
@@ -182,7 +187,12 @@ export default function Premium() {
             {!available
               ? "Coming soon"
               : loadingPlan === plan
-              ? "Redirecting…"
+              ? (
+                <>
+                  <span className="loading loading-spinner" />
+                  Redirecting…
+                </>
+              )
               : `Choose ${title}`}
           </button>
 
@@ -201,21 +211,23 @@ export default function Premium() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <header className="text-center mb-10">
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-8 sm:py-10">
+      <header className="text-center mb-8 sm:mb-10">
         <h1 className="text-4xl font-extrabold tracking-tight">Go Premium</h1>
         <p className="mt-2 opacity-80">
           Unlock faster discovery, smarter matching, and priority support.
         </p>
+
+        {/* Billing toggle */}
         <div className="join mt-5">
           <button
-            className={`btn join-item ${billing === "monthly" ? "btn-active" : ""}`}
+            className={`btn join-item ${billing === "monthly" ? "btn-active" : "btn-ghost"}`}
             onClick={() => setBilling("monthly")}
           >
             Monthly
           </button>
           <button
-            className={`btn join-item ${billing === "yearly" ? "btn-active" : ""}`}
+            className={`btn join-item ${billing === "yearly" ? "btn-active" : "btn-ghost"}`}
             onClick={() => setBilling("yearly")}
             title="Save with annual billing"
           >
@@ -245,20 +257,38 @@ export default function Premium() {
 
       {/* If already premium, don’t show plans */}
       {isPremium ? (
-        <div className="rounded-2xl p-6 border shadow-sm bg-base-100 text-center">
-          <h2 className="text-2xl font-bold">You’re already Premium 🎉</h2>
-          {sub && (
-            <p className="mt-2 opacity-80 text-sm">
-              Plan: <b>{sub.plan}</b> · Billing: <b>{sub.billing}</b> · Status:{" "}
-              <b>{sub.status}</b>
+        <div className="card bg-base-100 border border-base-200 shadow-xl">
+          <div className="card-body text-center">
+            <h2 className="text-2xl font-bold">You’re already Premium 🎉</h2>
+            {sub && (
+              <p className="mt-2 opacity-80 text-sm">
+                Plan: <b className="capitalize">{sub.plan}</b> · Billing: <b>{sub.billing}</b> · Status:{" "}
+                <b className="capitalize">{sub.status}</b>
+              </p>
+            )}
+            <p className="mt-2 opacity-80">
+              Thanks for supporting CodeMate. Enjoy all premium benefits!
             </p>
-          )}
-          <p className="mt-2 opacity-80">
-            Thanks for supporting CodeMate. Enjoy all premium benefits!
-          </p>
+          </div>
         </div>
       ) : loading ? (
-        <div className="text-center opacity-70">Loading plans…</div>
+        // Loading skeletons
+        <div className="grid md:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="card bg-base-100 border border-base-200 shadow-sm">
+              <div className="card-body">
+                <div className="skeleton h-7 w-48 mb-3" />
+                <div className="skeleton h-10 w-40 mb-4" />
+                <div className="space-y-2 mb-4">
+                  <div className="skeleton h-4 w-full" />
+                  <div className="skeleton h-4 w-5/6" />
+                  <div className="skeleton h-4 w-4/6" />
+                </div>
+                <div className="skeleton h-10 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
           <PlanCard plan="silver" title="Silver" />
@@ -266,27 +296,30 @@ export default function Premium() {
         </div>
       )}
 
+      {/* Benefits section */}
       <section className="mt-12">
-        <div className="rounded-2xl p-6 border shadow-sm bg-base-100">
-          <h2 className="text-xl font-bold mb-3">What you get with Premium</h2>
-          <div className="grid md:grid-cols-3 gap-4 text-sm">
-            <div className="p-4 rounded-xl bg-base-200/60">
-              <h3 className="font-semibold mb-1">Smarter Matching</h3>
-              <p className="opacity-80">
-                Your profile gets boosted in relevant searches and recommendations.
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-base-200/60">
-              <h3 className="font-semibold mb-1">Faster Workflow</h3>
-              <p className="opacity-80">
-                Real-time feed, advanced filters, and premium templates speed things up.
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-base-200/60">
-              <h3 className="font-semibold mb-1">Priority Support</h3>
-              <p className="opacity-80">
-                Get help sooner with prioritized responses and early feature access.
-              </p>
+        <div className="card bg-base-100 border border-base-200 shadow-xl">
+          <div className="card-body">
+            <h2 className="text-xl font-bold mb-3">What you get with Premium</h2>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div className="p-4 rounded-xl bg-base-200/60">
+                <h3 className="font-semibold mb-1">Smarter Matching</h3>
+                <p className="opacity-80">
+                  Your profile gets boosted in relevant searches and recommendations.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-base-200/60">
+                <h3 className="font-semibold mb-1">Faster Workflow</h3>
+                <p className="opacity-80">
+                  Real-time feed, advanced filters, and premium templates speed things up.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-base-200/60">
+                <h3 className="font-semibold mb-1">Priority Support</h3>
+                <p className="opacity-80">
+                  Get help sooner with prioritized responses and early feature access.
+                </p>
+              </div>
             </div>
           </div>
         </div>

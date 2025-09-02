@@ -6,49 +6,77 @@ import { Link } from "react-router-dom";
 import { setConnections } from "../utils/connectionsSlice";
 import { BASE_URL } from "../utils/constants";
 
-const ConnCard = ({ u }) => {
+/** Compact list-style connection card with "View Photo" modal trigger */
+const ConnCard = ({ u, onViewPhoto }) => {
   const id = u?._id || u?.id;
-  const photo =
-    u?.photourl || u?.photoUrl || `https://i.pravatar.cc/600?u=${id || "conn"}`;
+  const photo = u?.photourl || u?.photoUrl || "";
+  const name = u?.name || "Unnamed";
+  const about = u?.about || "";
 
   return (
-    <div className="card w-full bg-base-100 border border-base-200 shadow-sm rounded-2xl">
-      <figure className="bg-base-200">
-        <img
-          src={photo}
-          alt={u?.name || "User"}
-          className="h-40 w-full object-cover"
-          onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/600?u=conn")}
-        />
-      </figure>
-      <div className="card-body">
-        <h3 className="card-title">{u?.name || "Unnamed"}</h3>
-        {u?.about && <p className="opacity-80">{u.about}</p>}
-
-        {Array.isArray(u?.skills) && u.skills.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {u.skills.map((s) => (
-              <span key={s} className="badge badge-outline">
-                {s}
-              </span>
-            ))}
+    <div className="card card-compact w-full bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-shadow rounded-xl">
+      <div className="p-3 sm:p-4">
+        <div className="flex items-center gap-3">
+          {/* Left: small rectangle thumbnail (space reserved even if no image) */}
+          <div className="shrink-0">
+            <div className="w-20 h-14 sm:w-24 sm:h-16 rounded-lg overflow-hidden bg-base-200 border border-base-300">
+              {photo ? (
+                <img
+                  src={photo}
+                  alt={name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/200?u=conn-rect")}
+                />
+              ) : (
+                <div className="w-full h-full" />
+              )}
+            </div>
+            {photo && (
+              <button
+                type="button"
+                className="btn btn-xs btn-ghost mt-1 w-full"
+                onClick={() => onViewPhoto(photo, name)}
+              >
+                View Photo
+              </button>
+            )}
           </div>
-        )}
 
-        <div className="card-actions justify-end mt-4">
-          {id ? (
-            <Link
-              to={`/chat/${id}`}
-              state={{ target: { _id: id, name: u?.name || "", photoUrl: photo } }} // ← pass to Chat
-              className="btn btn-secondary btn-sm"
-            >
-              Chat
-            </Link>
-          ) : (
-            <button className="btn btn-secondary btn-sm" disabled>
-              Chat
-            </button>
-          )}
+          {/* Middle: text */}
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-sm sm:text-base truncate">{name}</h3>
+            {about && <p className="text-xs sm:text-sm opacity-80 truncate">{about}</p>}
+            {Array.isArray(u?.skills) && u.skills.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {u.skills.slice(0, 3).map((s) => (
+                  <span key={s} className="badge badge-outline badge-sm">
+                    {s}
+                  </span>
+                ))}
+                {u.skills.length > 3 && (
+                  <span className="badge badge-ghost badge-sm">+{u.skills.length - 3}</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right: action */}
+          <div className="shrink-0">
+            {id ? (
+              <Link
+                to={`/chat/${id}`}
+                state={{ target: { _id: id, name, photoUrl: photo || `https://i.pravatar.cc/600?u=${id}` } }}
+                className="btn btn-secondary btn-sm normal-case"
+              >
+                Chat
+              </Link>
+            ) : (
+              <button className="btn btn-secondary btn-sm" disabled>
+                Chat
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -60,6 +88,7 @@ export default function Connections() {
   const { items } = useSelector((s) => s.connections);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState("");
+  const [photoModal, setPhotoModal] = React.useState(null); // { url, name }
 
   React.useEffect(() => {
     let mounted = true;
@@ -108,26 +137,69 @@ export default function Connections() {
   }, [dispatch]);
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+    <section className="max-w-3xl mx-auto px-3 sm:px-4 py-6 space-y-4">
+      {/* Header */}
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">Connections</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Connections</h1>
         {loading && <span className="loading loading-dots loading-sm" />}
       </div>
 
+      {/* Error */}
       {err && (
-        <div className="alert alert-error">
-          <span>{err}</span>
+        <div className="alert alert-error shadow">
+          <span className="text-sm sm:text-base">{err}</span>
         </div>
       )}
 
-      {!loading && (!items || items.length === 0) ? (
-        <div className="alert">No connections yet.</div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {items.map((u) => (
-            <ConnCard key={u._id || u.id} u={u} />
+      {/* Loading skeleton (compact list) */}
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="card card-compact bg-base-100 border border-base-200 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-20 h-14 sm:w-24 sm:h-16 rounded-lg bg-base-200 border border-base-300" />
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-4 w-40" />
+                  <div className="skeleton h-3 w-64" />
+                </div>
+                <div className="skeleton h-8 w-20" />
+              </div>
+            </div>
           ))}
         </div>
+      ) : !items || items.length === 0 ? (
+        // Empty state (compact)
+        <div className="alert">
+          <span>No connections yet. Start matching and your connections will appear here.</span>
+        </div>
+      ) : (
+        // Compact list like Requests
+        <div className="space-y-3">
+          {items.map((u) => (
+            <ConnCard key={u._id || u.id} u={u} onViewPhoto={(url, name) => setPhotoModal({ url, name })} />
+          ))}
+        </div>
+      )}
+
+      {/* Modal to view full photo */}
+      {photoModal && (
+        <dialog open className="modal">
+          <div className="modal-box max-w-lg">
+            <h3 className="font-bold text-lg mb-3">{photoModal.name}'s Photo</h3>
+            <img
+              src={photoModal.url}
+              alt={photoModal.name}
+              className="w-full rounded-lg object-cover"
+              onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/600?u=conn-fallback")}
+            />
+            <div className="modal-action">
+              <button className="btn" onClick={() => setPhotoModal(null)}>Close</button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setPhotoModal(null)}>close</button>
+          </form>
+        </dialog>
       )}
     </section>
   );

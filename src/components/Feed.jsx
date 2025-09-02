@@ -123,121 +123,137 @@ const Feed = () => {
   const firstUser = feed?.[0];
 
   return (
-    <section className="max-w-5xl mx-auto space-y-4">
-      <header className="mb-2">
-        <h1 className="text-2xl md:text-3xl font-bold">
+    <section className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+      {/* Toast (DaisyUI) */}
+      {toast.msg && (
+        <div className="toast toast-top inset-x-0 mt-16 z-50">
+          <div className={`alert shadow-lg ${toast.type === "success" ? "alert-success" : "alert-error"}`}>
+            <span className="text-sm sm:text-base">{toast.msg}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="mb-1 sm:mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Hi {user?.name || user?.firstName || "there"} 👋
         </h1>
         <p className="opacity-80">Here’s your feed.</p>
       </header>
 
       {/* Controls: search, view mode, pagination */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        {/* LEFT: search & mode */}
-        <div className="flex flex-1 items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search by name or skill…"
-            className="input input-bordered w-full"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
+      <div className="card bg-base-100 border border-base-200 shadow-sm rounded-2xl">
+        <div className="card-body p-4 sm:p-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            {/* LEFT: search & mode */}
+            <div className="flex flex-1 items-center gap-2">
+              <div className="join w-full">
+                <input
+                  type="text"
+                  placeholder="Search by name or skill…"
+                  className="input input-bordered join-item w-full"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+                <button
+                  className="btn join-item btn-ghost"
+                  onClick={() => setSearchInput("")}
+                  disabled={!searchInput}
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              </div>
 
-          <div className="join">
-            <button
-              className={`btn join-item ${viewMode === "swipe" ? "btn-active" : ""}`}
-              onClick={() => setViewMode("swipe")}
-              disabled={loading}
-              title="Swipe mode: one card at a time"
-            >
-              Swipe
-            </button>
-            <button
-              className={`btn join-item ${viewMode === "grid" ? "btn-active" : ""}`}
-              onClick={() => setViewMode("grid")}
-              disabled={loading}
-              title="Grid mode: multiple cards per page"
-            >
-              Grid
-            </button>
+              <div className="join">
+                <button
+                  className={`btn join-item ${viewMode === "swipe" ? "btn-active" : "btn-ghost"}`}
+                  onClick={() => setViewMode("swipe")}
+                  disabled={loading}
+                  title="Swipe mode: one card at a time"
+                >
+                  Swipe
+                </button>
+                <button
+                  className={`btn join-item ${viewMode === "grid" ? "btn-active" : "btn-ghost"}`}
+                  onClick={() => setViewMode("grid")}
+                  disabled={loading}
+                  title="Grid mode: multiple cards per page"
+                >
+                  Grid
+                </button>
+              </div>
+            </div>
+
+            {/* RIGHT: pagination */}
+            <div className="flex items-center gap-2">
+              <div className="opacity-80 text-sm hidden md:block">
+                {totalUsers > 0 ? (
+                  <>
+                    Showing{" "}
+                    <strong>
+                      {totalUsers === 0 ? 0 : (page - 1) * limit + 1}–{Math.min(page * limit, totalUsers)}
+                    </strong>{" "}
+                    of <strong>{totalUsers}</strong>
+                  </>
+                ) : (
+                  "No users yet"
+                )}
+              </div>
+
+              <div className="join">
+                <button
+                  className="btn btn-sm join-item"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={!hasPrev || loading}
+                >
+                  ‹ Prev
+                </button>
+                <span className="btn btn-sm join-item btn-ghost pointer-events-none">
+                  Page {currentPage || page}
+                </span>
+                <button
+                  className="btn btn-sm join-item"
+                  onClick={() => hasNext && setPage((p) => p + 1)}
+                  disabled={!hasNext || loading}
+                >
+                  Next ›
+                </button>
+
+                <select
+                  className="select select-sm join-item"
+                  value={limit}
+                  onChange={(e) => { setPage(1); setLimit(parseInt(e.target.value, 10)); }}
+                  disabled={loading}
+                  title="Cards per page"
+                >
+                  {[5, 10, 20, 30, 50].map((n) => (
+                    <option key={n} value={n}>{n}/page</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* RIGHT: pagination */}
-        <div className="flex items-center gap-2">
-          <div className="opacity-80 text-sm hidden md:block">
-            {totalUsers > 0 ? (
-              <>
-                Showing{" "}
-                <strong>
-                  {totalUsers === 0 ? 0 : (page - 1) * limit + 1}–
-                  {Math.min(page * limit, totalUsers)}
-                </strong>{" "}
-                of <strong>{totalUsers}</strong>
-              </>
-            ) : (
-              "No users yet"
-            )}
-          </div>
-
-          <div className="join">
-            <button
-              className="btn btn-sm join-item"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={!hasPrev || loading}
-            >
-              ‹ Prev
-            </button>
-            <span className="btn btn-sm join-item btn-ghost pointer-events-none">
-              Page {currentPage || page}
-            </span>
-            <button
-              className="btn btn-sm join-item"
-              onClick={() => hasNext && setPage((p) => p + 1)}
-              disabled={!hasNext || loading}
-            >
-              Next ›
-            </button>
-
-            <select
-              className="select select-sm join-item"
-              value={limit}
-              onChange={(e) => { setPage(1); setLimit(parseInt(e.target.value, 10)); }}
-              disabled={loading}
-              title="Cards per page"
-            >
-              {[5, 10, 20, 30, 50].map((n) => (
-                <option key={n} value={n}>{n}/page</option>
-              ))}
-            </select>
-          </div>
+          {loading && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="loading loading-spinner" />
+              <span className="opacity-80">Loading feed…</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* toast */}
-      {toast.msg && (
-        <div
-          className={[
-            "alert shadow-sm",
-            toast.type === "success" ? "alert-success" : "alert-error",
-          ].join(" ")}
-        >
-          <span>{toast.msg}</span>
+      {/* Error */}
+      {error && (
+        <div className="alert alert-error shadow">
+          <span className="text-sm sm:text-base">{error}</span>
         </div>
       )}
-
-      {loading && (
-        <div className="flex items-center gap-2">
-          <span className="loading loading-spinner" />
-          <span className="opacity-80">Loading feed…</span>
-        </div>
-      )}
-
-      {error && <p className="text-error">{error}</p>}
 
       {/* CONTENT */}
       {!loading && !error && viewMode === "swipe" && firstUser && (
-        <div className="flex justify-center my-6">
+        <div className="flex justify-center my-4 sm:my-6">
           <ProfileCard
             key={firstUser._id}
             user={firstUser}
@@ -248,7 +264,7 @@ const Feed = () => {
       )}
 
       {!loading && !error && viewMode === "grid" && feed.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 my-4 sm:my-6">
           {feed.map((u) => (
             <ProfileCard
               key={u._id}
@@ -261,13 +277,15 @@ const Feed = () => {
       )}
 
       {!loading && !error && ((viewMode === "swipe" && !firstUser) || (viewMode === "grid" && feed.length === 0)) && (
-        <div className="card bg-base-100 border border-base-200 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title">All caught up 🎉</h3>
-            <p className="opacity-80">
-              No more profiles on this page.
-              {hasNext ? " Try Next →" : " Check back later!"}
-            </p>
+        <div className="hero bg-base-200 rounded-2xl border border-base-300">
+          <div className="hero-content text-center py-10 sm:py-14">
+            <div className="max-w-md">
+              <h3 className="text-xl sm:text-2xl font-semibold">All caught up 🎉</h3>
+              <p className="opacity-80 mt-2">
+                No more profiles on this page.
+                {hasNext ? " Try Next →" : " Check back later!"}
+              </p>
+            </div>
           </div>
         </div>
       )}

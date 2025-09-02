@@ -1,3 +1,4 @@
+// src/components/EditProfile.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
@@ -37,21 +38,17 @@ const arraysEqual = (a = [], b = []) => {
 };
 
 const EditProfile = ({ user }) => {
-  // derive stable initial form values from user
   const initial = useMemo(() => fromUser(user || {}), [user]);
 
-  // --- local form state (drives preview) ---
   const [name, setName] = useState(initial.name);
   const [photoUrl, setPhotoUrl] = useState(initial.photoUrl);
   const [age, setAge] = useState(initial.age);
   const [gender, setGender] = useState(initial.gender);
   const [about, setAbout] = useState(initial.about);
 
-  // skills
   const [skills, setSkills] = useState(initial.skills);
   const [skillInput, setSkillInput] = useState("");
 
-  // re-sync form whenever Redux user changes (first visit async load)
   useEffect(() => {
     setName(initial.name);
     setPhotoUrl(initial.photoUrl);
@@ -66,7 +63,6 @@ const EditProfile = ({ user }) => {
   const [showToast, setShowToast] = useState(false);
   const dispatch = useDispatch();
 
-  // preview object – make sure name wins over first/last in UserCard
   const previewUser = {
     ...(user || {}),
     name,
@@ -82,11 +78,9 @@ const EditProfile = ({ user }) => {
 
   const trim = (v) => (typeof v === "string" ? v.trim() : v);
 
-  // ---- Skills handlers ----
   const addSkill = () => {
     const s = trim(skillInput || "");
     if (!s) return;
-    // prevent dupes (case-insensitive)
     const exists = skills.some((k) => k.toLowerCase() === s.toLowerCase());
     if (exists) {
       setSkillInput("");
@@ -121,7 +115,6 @@ const EditProfile = ({ user }) => {
 
     setSaving(true);
     try {
-      // Build payload from current state (only changed fields)
       const base = fromUser(user);
       const payload = {};
 
@@ -129,7 +122,7 @@ const EditProfile = ({ user }) => {
 
       if (trim(photoUrl) !== trim(base.photoUrl)) {
         payload.photoUrl = trim(photoUrl);
-        payload.photourl = trim(photoUrl); // backend compat
+        payload.photourl = trim(photoUrl);
       }
 
       if (trim(age) !== trim(base.age)) {
@@ -150,18 +143,13 @@ const EditProfile = ({ user }) => {
         return;
       }
 
-      // ✅ await and use the response
       const res = await axios.patch(`${BASE_URL}/profile/update`, payload, {
         withCredentials: true,
       });
 
       const updated =
-        res?.data?.updatedFields ??
-        res?.data?.data ??
-        res?.data ??
-        {};
+        res?.data?.updatedFields ?? res?.data?.data ?? res?.data ?? {};
 
-      // Merge into Redux user
       dispatch(addUser({ ...(user || {}), ...updated }));
 
       setShowToast(true);
@@ -188,172 +176,197 @@ const EditProfile = ({ user }) => {
 
   return (
     <>
-      {/* Success toast fixed just below navbar */}
       {showToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50">
-          <div className="alert alert-success shadow-lg">
-            <span>Profile updated successfully.</span>
+        <div className="toast toast-top w-full inset-x-0 mt-16 z-50">
+          <div className="w-full flex justify-center px-3">
+            <div className="alert alert-success shadow-lg max-w-screen-sm w-full">
+              <span>Profile updated successfully.</span>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-4 sm:mt-6">
         {/* Editor */}
-        <div className="card bg-base-100 border border-indigo-100 shadow-xl rounded-2xl">
-          <div className="card-body space-y-4">
+        <div className="card bg-base-100 border border-base-200 shadow-xl rounded-2xl">
+          <div className="card-body p-4 sm:p-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-6 rounded bg-indigo-500" />
-              <h2 className="card-title">Edit Profile</h2>
+              {/* 🔹 simple bullet instead of avatar placeholder */}
+              <span className="text-primary text-xl leading-none">•</span>
+              <h2 className="card-title text-lg sm:text-xl">Edit Profile</h2>
             </div>
 
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text font-medium">Name</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered focus:ring focus:ring-indigo-200"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Arpon Roy"
-              />
-            </label>
-
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text font-medium">Photo URL</span>
-              </div>
-              <input
-                type="text"
-                className="input input-bordered focus:ring focus:ring-indigo-200"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="https://… or /uploads/…"
-              />
-            </label>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="mt-2 grid grid-cols-1 gap-4">
               <label className="form-control">
                 <div className="label">
-                  <span className="label-text font-medium">Age</span>
+                  <span className="label-text font-medium">Name</span>
                 </div>
-                <input
-                  type="number"
-                  min="0"
-                  className="input input-bordered focus:ring focus:ring-indigo-200"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="24"
-                />
-              </label>
-
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text font-medium">Gender</span>
-                </div>
-                <select
-                  className="select select-bordered focus:ring focus:ring-indigo-200"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Select…
-                  </option>
-                  {GENDER_OPTIONS.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text font-medium">About</span>
-              </div>
-              <textarea
-                className="textarea textarea-bordered min-h-28 focus:ring focus:ring-indigo-200"
-                value={about}
-                onChange={(e) => setAbout(e.target.value)}
-                placeholder="A short bio about you"
-              />
-            </label>
-
-            {/* Skills Editor */}
-            <div className="space-y-2">
-              <div className="label">
-                <span className="label-text font-medium">Skills</span>
-              </div>
-              <div className="flex gap-2">
                 <input
                   type="text"
-                  className="input input-bordered flex-1 focus:ring focus:ring-indigo-200"
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={onSkillKey}
-                  placeholder="e.g., React"
+                  className="input input-bordered w-full"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g., Arpon Roy"
                 />
-                <button type="button" className="btn btn-primary" onClick={addSkill}>
-                  +
-                </button>
+              </label>
+
+              <label className="form-control">
+                <div className="label">
+                  <span className="label-text font-medium">Photo URL</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="https://… or /uploads/…"
+                  />
+                  <div className="avatar hidden sm:block">
+                    <div className="w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                      <img
+                        src={photoUrl || "https://i.pravatar.cc/120?u=preview"}
+                        alt="preview"
+                        onError={(e) => (e.currentTarget.src = "https://i.pravatar.cc/120?u=preview")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="form-control">
+                  <div className="label">
+                    <span className="label-text font-medium">Age</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    className="input input-bordered w-full"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="24"
+                  />
+                </label>
+
+                <label className="form-control">
+                  <div className="label">
+                    <span className="label-text font-medium">Gender</span>
+                  </div>
+                  <select
+                    className="select select-bordered w-full"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      Select…
+                    </option>
+                    {GENDER_OPTIONS.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
 
-              {/* Existing skills as removable chips */}
-              {skills.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {skills.map((s, i) => (
-                    <span
-                      key={`${s}-${i}`}
-                      className="badge badge-outline gap-2 border-indigo-200"
-                    >
-                      {s}
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-xs px-1"
-                        onClick={() => removeSkill(i)}
-                        aria-label={`Remove ${s}`}
+              <label className="form-control">
+                <div className="label">
+                  <span className="label-text font-medium">About</span>
+                  <span className="label-text-alt opacity-70">
+                    A short bio about you
+                  </span>
+                </div>
+                <textarea
+                  className="textarea textarea-bordered min-h-28 w-full"
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder="Tell others what you like to build…"
+                />
+              </label>
+
+              {/* Skills Editor */}
+              <div className="space-y-2">
+                <div className="label">
+                  <span className="label-text font-medium">Skills</span>
+                </div>
+                <div className="join w-full">
+                  <input
+                    type="text"
+                    className="input input-bordered join-item w-full"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={onSkillKey}
+                    placeholder="e.g., React"
+                  />
+                  <button type="button" className="btn btn-primary join-item" onClick={addSkill}>
+                    Add
+                  </button>
+                </div>
+
+                {skills.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {skills.map((s, i) => (
+                      <span
+                        key={`${s}-${i}`}
+                        className="badge badge-outline gap-2"
                       >
-                        ✕
-                      </button>
-                    </span>
-                  ))}
+                        {s}
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs px-1"
+                          onClick={() => removeSkill(i)}
+                          aria-label={`Remove ${s}`}
+                          title={`Remove ${s}`}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <div className="alert alert-error mt-1">
+                  <span>{error}</span>
                 </div>
               )}
-            </div>
 
-            {error && <p className="text-error">{error}</p>}
+              <div className="divider my-2" />
 
-            <div className="card-actions justify-end items-center gap-3 pt-2">
-              <button className="btn btn-ghost" onClick={resetForm} disabled={saving}>
-                Reset
-              </button>
-              <button
-                className={`btn btn-primary shadow-md hover:shadow-lg ${saving ? "btn-disabled" : ""}`}
-                onClick={saveProfile}
-                disabled={saving || !name.trim()}
-              >
-                {saving ? (
-                  <>
-                    <span className="loading loading-spinner loading-sm" />
-                    <span className="ml-2">Saving…</span>
-                  </>
-                ) : (
-                  "Save Profile"
-                )}
-              </button>
+              <div className="card-actions justify-end items-center gap-3">
+                <button className="btn btn-ghost" onClick={resetForm} disabled={saving}>
+                  Reset
+                </button>
+                <button
+                  className={`btn btn-primary ${saving ? "btn-disabled" : ""}`}
+                  onClick={saveProfile}
+                  disabled={saving || !name.trim()}
+                >
+                  {saving ? (
+                    <>
+                      <span className="loading loading-spinner" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save Profile"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Preview */}
-        <div className="card bg-base-100 border border-indigo-100 shadow-xl rounded-2xl">
-          <div className="card-body">
+        <div className="card bg-base-100 border border-base-200 shadow-xl rounded-2xl">
+          <div className="card-body p-4 sm:p-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-6 rounded bg-indigo-500" />
-              <h2 className="card-title">Preview</h2>
+              {/* 🔸 simple bullet for preview title */}
+              <span className="text-secondary text-xl leading-none">•</span>
+              <h2 className="card-title text-lg sm:text-xl">Preview</h2>
             </div>
-            <div className="pt-2 flex items-start justify-center">
+            <div className="pt-3 flex items-start justify-center">
               <UserCard user={previewUser} />
             </div>
           </div>

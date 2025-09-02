@@ -174,81 +174,99 @@ export default function Chat() {
   const avatarSrc = targetProfile.photoUrl || `https://i.pravatar.cc/80?u=${targetUserId}`;
 
   return (
-    <div className="w-full md:w-3/4 mx-auto border border-base-300 rounded-2xl shadow-xl mt-6 h-[78vh] flex flex-col bg-base-100">
-      {/* Header — target user */}
-      <div className="p-4 border-b border-base-300 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="avatar">
-            <div className="w-10 rounded-full">
-              <img
-                src={avatarSrc}
-                alt={targetProfile.name || "User"}
-                onError={(e) => { e.currentTarget.src = `https://i.pravatar.cc/80?u=${targetUserId}`; }}
-              />
+    <div className="w-full mx-auto mt-4 sm:mt-6 px-2 sm:px-0">
+      <div className="mx-auto w-full sm:w-11/12 md:w-5/6 lg:w-2/3 xl:w-1/2 rounded-box border border-base-300 shadow-xl bg-base-100 flex flex-col h-[78vh] sm:h-[80vh] overflow-hidden">
+        {/* Header — target user (sticky inside chat) */}
+        <div className="sticky top-0 z-10 bg-base-100/95 backdrop-blur border-b border-base-300 p-3 sm:p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="avatar">
+              <div className="w-10 sm:w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                <img
+                  src={avatarSrc}
+                  alt={targetProfile.name || "User"}
+                  onError={(e) => { e.currentTarget.src = `https://i.pravatar.cc/80?u=${targetUserId}`; }}
+                />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                <span className="truncate max-w-[40vw] sm:max-w-[240px]">{targetProfile.name || "User"}</span>
+                <PresenceDot online={targetPresence.online} />
+              </div>
+              <div className="text-xs sm:text-sm opacity-70">
+                {targetPresence.online
+                  ? "online"
+                  : targetPresence.lastSeen
+                  ? `last seen ${timeAgo(targetPresence.lastSeen)}`
+                  : "offline"}
+              </div>
             </div>
           </div>
-          <div>
-            <div className="font-semibold text-lg flex items-center gap-2">
-              {targetProfile.name || "User"}
-              <PresenceDot online={targetPresence.online} />
+
+          <div className="badge badge-outline badge-sm sm:badge-md">1:1</div>
+        </div>
+
+        {/* Messages */}
+        <div ref={listRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+          {messages.map((msg, idx) => {
+            const mine =
+              String(msg.senderId) === String(userId) || msg.name === user.name;
+            return (
+              <div key={idx} className={`chat ${mine ? "chat-end" : "chat-start"}`}>
+                <div className="chat-header">
+                  <span className="truncate max-w-[40vw] sm:max-w-[260px]">{msg.name}</span>
+                  <time className="text-xs opacity-50 ml-2">
+                    {msg.createdAt ? timeAgo(msg.createdAt) : ""}
+                  </time>
+                </div>
+                <div
+                  className={[
+                    "chat-bubble whitespace-pre-wrap break-words max-w-[82%] sm:max-w-[70%]",
+                    mine ? "chat-bubble-secondary" : "chat-bubble-primary chat-bubble-outline",
+                  ].join(" ")}
+                >
+                  {msg.text}
+                </div>
+                <div className="chat-footer opacity-50">{mine ? "Sent" : "Seen"}</div>
+              </div>
+            );
+          })}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="chat chat-start">
+              <div className="chat-bubble">
+                <span className="loading loading-dots loading-sm"></span>
+              </div>
             </div>
-            <div className="text-xs opacity-70">
-              {targetPresence.online
-                ? "online"
-                : targetPresence.lastSeen
-                ? `last seen ${timeAgo(targetPresence.lastSeen)}`
-                : "offline"}
-            </div>
+          )}
+        </div>
+
+        {/* Composer (sticky at bottom) */}
+        <div className="sticky bottom-0 z-10 border-t border-base-300 bg-base-100/95 backdrop-blur p-3 sm:p-4">
+          <div className="flex items-center gap-2">
+            <input
+              value={newMessage}
+              onChange={handleChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              className="input input-bordered flex-1 text-sm sm:text-base"
+              placeholder="Type a message…"
+              aria-label="Message text"
+            />
+            <button
+              onClick={sendMessage}
+              className="btn btn-secondary min-w-20 sm:min-w-24"
+              aria-label="Send message"
+            >
+              Send
+            </button>
           </div>
         </div>
-        <div className="badge badge-outline">1:1</div>
-      </div>
-
-      {/* Messages */}
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2">
-        {messages.map((msg, idx) => {
-          const mine = String(msg.senderId) === String(userId) || msg.name === user.name;
-          return (
-            <div key={idx} className={`chat ${mine ? "chat-end" : "chat-start"}`}>
-              <div className="chat-header">
-                {msg.name}
-                <time className="text-xs opacity-50 ml-2">
-                  {msg.createdAt ? timeAgo(msg.createdAt) : ""}
-                </time>
-              </div>
-              <div className={`chat-bubble ${mine ? "chat-bubble-secondary" : ""}`}>
-                {msg.text}
-              </div>
-              <div className="chat-footer opacity-50">{mine ? "Sent" : "Seen"}</div>
-            </div>
-          );
-        })}
-
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="chat chat-start">
-            <div className="chat-bubble">
-              <span className="loading loading-dots loading-sm"></span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Composer */}
-      <div className="p-4 border-t border-base-300 flex items-center gap-2">
-        <input
-          value={newMessage}
-          onChange={handleChange}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage();
-            }
-          }}
-          className="input input-bordered flex-1"
-          placeholder="Type a message…"
-        />
-        <button onClick={sendMessage} className="btn btn-secondary">Send</button>
       </div>
     </div>
   );

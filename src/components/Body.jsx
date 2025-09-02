@@ -68,28 +68,34 @@ const Body = () => {
     <div className="min-h-screen bg-base-100 text-base-content flex flex-col">
       <NavBar />
 
-      {/* Global toast just under the navbar */}
+      {/* Global toast — DaisyUI toast, pinned under navbar, centered on mobile/desktop */}
       {toast && (
-        <div className="container mx-auto px-4 pt-3">
-          <div
-            className={[
-              "alert shadow",
-              toast.type === "error" ? "alert-error" : "alert-success",
-            ].join(" ")}
-          >
-            <span>{toast.text}</span>
+        <div className="toast toast-top w-full inset-x-0 mt-16 z-50">
+          <div className="w-full flex justify-center px-4">
+            <div
+              className={[
+                "alert shadow-lg max-w-screen-sm w-full",
+                toast.type === "error" ? "alert-error" : "alert-success",
+              ].join(" ")}
+            >
+              <span className="text-sm sm:text-base">{toast.text}</span>
+            </div>
           </div>
         </div>
       )}
 
-      <main className="container mx-auto px-4 py-6 flex-1">
+      {/* Main content */}
+      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 lg:py-10 flex-1 max-w-6xl w-full">
         {checking ? (
-          <div className="w-full flex items-center justify-center py-16">
-            <span className="loading loading-spinner loading-md" />
-            <span className="ml-3 text-sm opacity-70">Checking session…</span>
+          <div className="w-full min-h-[40vh] flex flex-col items-center justify-center gap-3">
+            <span className="loading loading-spinner loading-lg" />
+            <span className="text-sm sm:text-base opacity-70">Checking session…</span>
           </div>
         ) : (
-          <Outlet />
+          <div className="w-full">
+            {/* Outlet renders pages; keep spacing consistent on mobile/desktop */}
+            <Outlet />
+          </div>
         )}
       </main>
 
