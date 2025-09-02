@@ -147,11 +147,6 @@ Project is live at:
 
 ---
 
-
-
-
-### App Screenshots
-
 ## 📸 App Screenshots  
 
 | App Page | Chat Page | Connections Page |
