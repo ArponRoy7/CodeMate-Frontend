@@ -72,9 +72,7 @@ const NavBar = () => {
 
   const [isPremium, setIsPremium] = React.useState(false);
 
-  // Single function to check premium; memoized to reuse in effects
   const checkPremium = React.useCallback(async () => {
-    // If logged out, clear immediately (prevents stale blue tick)
     if (!user?._id) {
       setIsPremium(false);
       return;
@@ -94,12 +92,10 @@ const NavBar = () => {
     }
   }, [user?._id]);
 
-  // Re-check when user changes or route changes (e.g., after login, profile updates, nav)
   React.useEffect(() => {
     checkPremium();
   }, [checkPremium, location.pathname]);
 
-  // Also re-check when window regains focus (user may have changed plan in another tab)
   React.useEffect(() => {
     const onFocus = () => checkPremium();
     window.addEventListener("focus", onFocus);
@@ -110,7 +106,7 @@ const NavBar = () => {
     try {
       await axios.get(`${BASE_URL}/logout`, { withCredentials: true });
     } catch {}
-    setIsPremium(false); // ensure badge disappears right away
+    setIsPremium(false);
     dispatch(removeUser());
     navigate("/login", { replace: true });
   };
@@ -209,6 +205,7 @@ const NavBar = () => {
                   className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-56 p-2 shadow-lg"
                   role="menu"
                 >
+                  {/* Status row */}
                   <li className="pointer-events-none">
                     <div className="flex items-center gap-2 opacity-80">
                       <span className="text-xs">Status:</span>
@@ -221,11 +218,13 @@ const NavBar = () => {
                       )}
                     </div>
                   </li>
+
                   <li><NavLink to="/profile" className={menuLinkClass}>Profile</NavLink></li>
                   <li><NavLink to="/connections" className={menuLinkClass}>Connections</NavLink></li>
                   <li><NavLink to="/requests" className={menuLinkClass}>Requests</NavLink></li>
                   <li><NavLink to="/change-password" className={menuLinkClass}>Change password</NavLink></li>
-                  <li className="lg:hidden"><NavLink to="/premium" className={menuLinkClass}>Premium</NavLink></li>
+                  {/* Premium link always visible in dropdown */}
+                  <li><NavLink to="/premium" className={menuLinkClass}>Premium</NavLink></li>
                   <li><button type="button" onClick={handleLogout}>Logout</button></li>
                 </ul>
               </div>
