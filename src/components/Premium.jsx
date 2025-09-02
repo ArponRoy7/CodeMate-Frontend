@@ -29,12 +29,10 @@ export default function Premium() {
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const [sub, setSub] = useState(null);
-  const [portalLoading, setPortalLoading] = useState(false);
 
   const location = useLocation();
   const qp = new URLSearchParams(location.search);
   const status = qp.get("status");
-  const sessionId = qp.get("session_id");
 
   // Load available plans
   useEffect(() => {
@@ -94,7 +92,6 @@ export default function Premium() {
 
   // Better error helper to explain *why* checkout didn't start
   const explainCheckoutError = (e, available) => {
-    // server message if present
     const serverMsg = e?.response?.data?.message || e?.message;
 
     if (!available) {
@@ -112,7 +109,6 @@ export default function Premium() {
     if (!navigator.onLine) {
       return "You appear to be offline. Check your connection and try again.";
     }
-    // default fallback + include short server reason if we have one
     return serverMsg
       ? `Could not start checkout: ${serverMsg}`
       : "Could not start checkout. Please try again.";
@@ -124,7 +120,6 @@ export default function Premium() {
       setError("");
       setLoadingPlan(plan);
 
-      // guard: if price not available we don't even call server
       if (!available) {
         setError(`This plan for ${billing} isn’t available yet.`);
         return;
@@ -145,23 +140,6 @@ export default function Premium() {
       setError(explainCheckoutError(e, available));
     } finally {
       setLoadingPlan(null);
-    }
-  };
-
-  const openBillingPortal = async () => {
-    try {
-      setPortalLoading(true);
-      setError("");
-      const res = await axios.post(`${BASE_URL}/stripe/portal`, {}, { withCredentials: true });
-      if (res?.data?.url) {
-        window.location.href = res.data.url;
-      } else {
-        setError("Could not open billing portal. Please try again later.");
-      }
-    } catch {
-      setError("Could not open billing portal. Please try again later.");
-    } finally {
-      setPortalLoading(false);
     }
   };
 
@@ -186,7 +164,7 @@ export default function Premium() {
     );
   };
 
-  // Card: equal height & tidy layout; removed external icons
+  // Card: equal height & tidy layout; no external icons
   const PlanCard = ({ plan, title, highlight }) => {
     const available = hasPrice(plan);
 
@@ -196,15 +174,13 @@ export default function Premium() {
           "card h-full w-full shadow-xl border overflow-hidden",
           highlight ? "border-primary/50" : "border-base-200",
           "bg-base-100",
-          "flex" // make card itself a flex container for consistent stretching
+          "flex"
         ].join(" ")}
       >
         <div className="card-body p-5 sm:p-6 flex flex-col">
           <div className="flex items-center justify-between gap-3">
             <h3 className="card-title text-2xl">{title}</h3>
-            {highlight && (
-              <div className="badge badge-primary badge-lg">Popular</div>
-            )}
+            {highlight && <div className="badge badge-primary badge-lg">Popular</div>}
           </div>
 
           <Price plan={plan} />
@@ -278,10 +254,10 @@ export default function Premium() {
         </div>
       </header>
 
-      {/* Notices from Stripe return */}
-      {status === "success" && sessionId && (
+      {/* Success / cancel notices from Stripe return */}
+      {status === "success" && (
         <div className="alert alert-success mb-6">
-          <span>Payment successful. Session: {sessionId.slice(0, 12)}…</span>
+          <span>Payment successful.</span>
         </div>
       )}
       {status === "cancel" && (
@@ -297,7 +273,7 @@ export default function Premium() {
         </div>
       )}
 
-      {/* If already premium, show professional confirmation instead of plan cards */}
+      {/* If already premium, show confirmation instead of plan cards */}
       {isPremium ? (
         <>
           <div className="card bg-base-100 border border-base-200 shadow-xl">
@@ -310,24 +286,10 @@ export default function Premium() {
                 </p>
               )}
               <p className="mt-2 opacity-80">
-                Thank you for supporting <b>CodeMate</b>. Your account includes all Premium benefits such as
+                Thank you for supporting <b>SkillMate</b>. Your account includes all Premium benefits such as
                 smarter matching, real-time feed enhancements, and priority support.
               </p>
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <button
-                  className={`btn btn-primary ${portalLoading ? "btn-disabled" : ""}`}
-                  onClick={openBillingPortal}
-                  disabled={portalLoading}
-                >
-                  {portalLoading ? (
-                    <>
-                      <span className="loading loading-spinner" />
-                      Opening billing…
-                    </>
-                  ) : (
-                    "Manage subscription"
-                  )}
-                </button>
+              <div className="mt-4">
                 <a href="/feed" className="btn btn-ghost">Back to Feed</a>
               </div>
               <div className="text-xs opacity-70 mt-3">
