@@ -147,7 +147,6 @@ Project is live at:
 
 ---
 
-## 📸 Screenshots
 
 
 
