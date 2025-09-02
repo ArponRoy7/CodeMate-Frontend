@@ -1,10 +1,10 @@
-# CodeMate Frontend
+# SkillMate Frontend
 
-CodeMate is a **social networking and collaboration platform** frontend built with **React**, **Redux**, and **React Router**.  
+skillmate is a **social networking and collaboration platform** frontend built with **React**, **Redux**, and **React Router**.  
 It enables users to connect, chat, manage requests, and access premium features.  
-The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy and **PM2** for process management, with a live domain: **[thecodemate.shop](http://thecodemate.shop)**.
+The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy and **PM2** for process management, with a live domain: **[thescodemate.shop](http://thecodemate.shop)**.
 
-![CodeMate Screenshot](./screenshot.png)  
+![SkillMate Screenshot](./src/assets/screenshot.png)  
 *(Replace `screenshot.png` with your actual screenshot file in the repo)*
 
 ---
@@ -25,7 +25,7 @@ The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy an
 ## 📂 Project Structure
 
 ```bash
-CodeMate-Frontend/
+skillmate-Frontend/
 ├── public/                # Static assets (favicon, images, etc.)
 ├── src/
 │   ├── components/        # React components (Feed, Login, Profile, Chat, etc.)
@@ -49,8 +49,8 @@ CodeMate-Frontend/
 ### Steps
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/CodeMate-Frontend.git
-cd CodeMate-Frontend
+git clone https://github.com/your-username/SkillMate-Frontend.git
+cd skillmate-Frontend
 
 # Install dependencies
 npm install
@@ -81,12 +81,12 @@ pm2 serve dist 3000 --spa
 ```
 
 ### 3. Configure Nginx
-Sample `/etc/nginx/sites-available/codemate` config:
+Sample `/etc/nginx/sites-available/skillmate` config:
 
 ```nginx
 server {
     listen 80;
-    server_name thecodemate.shop www.thecodemate.shop;
+    server_name theskillmate.shop www.theskillmate.shop;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -101,13 +101,13 @@ server {
 
 Enable config and restart Nginx:
 ```bash
-sudo ln -s /etc/nginx/sites-available/codemate /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/skillmate /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
 ```
 
 ### 4. Secure with SSL (optional)
 ```bash
-sudo certbot --nginx -d thecodemate.shop -d www.thecodemate.shop
+sudo certbot --nginx -d theskillmate.shop -d www.theskillmate.shop
 ```
 
 ---
@@ -115,7 +115,7 @@ sudo certbot --nginx -d thecodemate.shop -d www.thecodemate.shop
 ## 🔗 Domain
 
 Project is live at:  
-👉 [**thecodemate.shop**](http://thecodemate.shop)
+👉 [**theskillmate.shop**](http://thecodemate.shop)
 
 ---
 
@@ -143,7 +143,7 @@ Project is live at:
 - **State Management**: Redux (`appStore`)
 - **Styling**: CSS + Theme support
 - **Deployment**: AWS EC2, Nginx, PM2
-- **Domain**: thecodemate.shop
+- **Domain**: theskillmate.shop
 
 ---
 
