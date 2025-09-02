@@ -2,10 +2,10 @@
 
 skillmate is a **social networking and collaboration platform** frontend built with **React**, **Redux**, and **React Router**.  
 It enables users to connect, chat, manage requests, and access premium features.  
-The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy and **PM2** for process management, with a live domain: **[thescodemate.shop](http://thecodemate.shop)**.
+The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy and **PM2** for process management, with a live domain: [**theskillmate.shop**](http://thecodemate.shop).
 
 ![SkillMate Screenshot](./src/assets/screenshot.png)  
-*(Replace `screenshot.png` with your actual screenshot file in the repo)*
+
 
 ---
 
@@ -149,19 +149,19 @@ Project is live at:
 
 ## 📸 Screenshots
 
-Add screenshots in a `/docs` or `/assets` folder, and link them here.
+
 
 Example:
 ```markdown
-![Feed Page](./docs/feed.png)
-![Chat Page](./docs/chat.png)
+![Feed Page](./assets/feed.png)
+![Chat Page](./assets/chat.png)
 ```
 
 ---
 
 ## 👨‍💻 Author
 
-Developed by **[Your Name]**.  
+Developed by **Arpon Roy**.  
 For inquiries, reach out via email or GitHub.
 
 ---
