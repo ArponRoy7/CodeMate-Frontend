@@ -141,10 +141,11 @@ Project is live at:
 - **Frontend Framework**: React 18
 - **Routing**: React Router DOM
 - **State Management**: Redux (`appStore`)
-- **Styling**: CSS + Theme support
+- **Styling**: Tailwind CSS , Daisy UI
 - **Deployment**: AWS EC2, Nginx, PM2
-- **Domain**: theskillmate.shop
-
+- **Domain**: thecodemate.shop
+- **Payment Gateway**: strip
+- **Real Time Chat**: socket.io
 ---
 
 ## 📸 App Screenshots  
