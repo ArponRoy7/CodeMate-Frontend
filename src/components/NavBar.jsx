@@ -158,7 +158,7 @@ const NavBar = () => {
             title="Go to Feed"
           >
             <span className="text-primary text-lg">■</span>
-            <span>CodeMate</span>
+            <span>SkillMate</span>
           </Link>
         </div>
 
