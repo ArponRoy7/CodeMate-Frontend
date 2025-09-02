@@ -4,7 +4,7 @@ skillmate is a **social networking and collaboration platform** frontend built w
 It enables users to connect, chat, manage requests, and access premium features.  
 The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy and **PM2** for process management, with a live domain: [**theskillmate.shop**](http://thecodemate.shop).
 
-![SkillMate Screenshot](./src/assets/screenshot.png)  
+
 
 
 ---
@@ -17,7 +17,7 @@ The application is deployed on **AWS EC2** using **Nginx** as a reverse proxy an
 - 💬 **Real-time Chat** – Chat feature using `Chat` component with dynamic user IDs.
 - 👤 **Profile Management** – Update and manage user profile.
 - ⭐ **Premium Access** – Premium services accessible via `/premium` route.
-- 🎨 **Theme Support** – Automatic theme loading (light/dark mode) from localStorage【22†source】.
+- 🎨 **Theme Support** – Automatic theme loading (light/dark mode) from localStorage.
 - 🛡️ **Routing Guards** – Protected routes redirect unauthorized users to login.
 
 ---
@@ -151,13 +151,22 @@ Project is live at:
 
 
 
-Example:
-```markdown
-![Feed Page](./assets/feed.png)
-![Chat Page](./assets/chat.png)
-```
+### App Screenshots
 
----
+## 📸 App Screenshots  
+
+| App Page | Chat Page | Connections Page |
+|----------|-----------|------------------|
+| ![App Page](./src/assets/app.png) | ![Chat Page](./src/assets/chat.png) | ![Connections Page](./src/assets/connections.png) |
+
+| Feed Page | Payment Page | Requests Received Page |
+|-----------|--------------|-------------------------|
+| ![Feed Page](./src/assets/feed.png) | ![Payment Page](./src/assets/payment.png) | ![Requests Received Page](./src/assets/requestrecived.png) |
+
+
+
+
+
 
 ## 👨‍💻 Author
 
